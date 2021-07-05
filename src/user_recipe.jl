@@ -35,7 +35,7 @@ function _process_userrecipes!(plt, plotattributes, args)
         else
             rd_list =
                 RecipesBase.apply_recipe(next_series.plotattributes, next_series.args...)
-                warn_on_recipe_aliases!(plt, rd_list, :user, userrecipe_signature_string(next_series.args...))
+                warn_on_recipe_aliases!(plt, rd_list, :user, next_series.args)
             prepend!(still_to_process, rd_list)
         end
     end
@@ -125,6 +125,7 @@ end
     y === newy || (did_replace = true)
     newz = _apply_type_recipe(plotattributes, z, :z)
     z === newz || (did_replace = true)
+    did_replace = handle_zcolors!(plotattributes, did_replace)
     if did_replace
         newx, newy, newz
     else
@@ -138,6 +139,7 @@ end
     x === newx || (did_replace = true)
     newy = _apply_type_recipe(plotattributes, y, :y)
     y === newy || (did_replace = true)
+    did_replace = handle_zcolors!(plotattributes, did_replace)
     if did_replace
         newx, newy
     else
@@ -147,7 +149,9 @@ end
 @recipe function f(y)
     wrap_surfaces!(plotattributes, y)
     newy = _apply_type_recipe(plotattributes, y, :y)
-    if y !== newy
+    did_replace = y !== newy
+    did_replace = handle_zcolors!(plotattributes, did_replace)
+    if did_replace
         newy
     else
         SliceIt, nothing, y, nothing
@@ -168,10 +172,26 @@ end
         end,
         (v1, v2, v3, v4, vrest...),
     )
+    did_replace = handle_zcolors!(plotattributes, did_replace)
     if !did_replace
         error("Couldn't process recipe args: $(map(typeof, (v1, v2, v3, v4, vrest...)))")
     end
     newargs
+end
+
+function handle_zcolors!(plotattributes, did_replace)
+    plt = plotattributes[:plot_object]
+    for sym in colorscale_attributes(plt)
+        if haskey(plotattributes, sym)
+            c = plotattributes[sym]
+            newc = _apply_type_recipe(plotattributes, c, :c)
+            if c !== newc
+                did_replace = true
+                set_colorscale!(plt, plotattributes, sym, newc)
+            end
+        end
+    end
+    return did_replace
 end
 
 

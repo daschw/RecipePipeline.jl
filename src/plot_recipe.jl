@@ -31,7 +31,7 @@ function _process_plotrecipe(plt, kw, kw_list, still_to_process)
         st = kw[:seriestype]
         st = kw[:seriestype] = type_alias(plt, st)
         datalist = RecipesBase.apply_recipe(kw, Val{st}, plt)
-        warn_on_recipe_aliases!(plt, datalist, :plot, plotrecipe_signature_string(st))
+        warn_on_recipe_aliases!(plt, datalist, :plot, st)
         for data in datalist
             preprocess_attributes!(plt, data.plotattributes)
             if data.plotattributes[:seriestype] == st
@@ -40,7 +40,7 @@ function _process_plotrecipe(plt, kw, kw_list, still_to_process)
             push!(still_to_process, data.plotattributes)
         end
     catch err
-        if isa(err, MethodError)
+        if err isa MethodError && occursin("plot recipe", err.args)
             push!(kw_list, kw)
         else
             rethrow()
