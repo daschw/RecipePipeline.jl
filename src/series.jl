@@ -139,6 +139,17 @@ struct SliceIt end
         zformatter := z.formatter
         z = z.data
     end
+    # handle colorgradient args
+    plt = plotattributes[:plot_object]
+    for sym in colorscale_attributes(plt)
+        if haskey(plotattributes, sym)
+            c = plotattributes[sym]
+            if typeof(c) <: Formatted
+                cformatter := c.formatter
+                set_colorscale!(plt, plotattributes, sym, c.data)
+            end
+        end
+    end
 
     xs = _series_data_vector(x, plotattributes)
     ys = _series_data_vector(y, plotattributes)

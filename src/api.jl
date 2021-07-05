@@ -84,7 +84,7 @@ function preprocess_axis_args!(plt, plotattributes)
     for (k, v) in plotattributes
         if is_axis_attribute(plt, k)
             pop!(plotattributes, k)
-            for l in (:x, :y, :z)
+            for l in (:x, :y, :z, :c)
                 lk = Symbol(l, k)
                 haskey(plotattributes, lk) || (plotattributes[lk] = v)
             end
@@ -110,7 +110,7 @@ Removes the `:letter` key from `plotattributes` and does the same prepending of 
 """
 function postprocess_axis_args!(plt, plotattributes, letter)
     pop!(plotattributes, :letter)
-    if letter in (:x, :y, :z)
+    if letter in (:x, :y, :z, :c)
         for (k, v) in plotattributes
             if is_axis_attribute(plt, k)
                 pop!(plotattributes, k)
@@ -141,6 +141,24 @@ Get the limits for the axis specified by `letter` (`:x`, `:y` or `:z`) in `plt`.
 errors, `tryrange` from PlotUtils is used.
 """
 get_axis_limits(plt, letter) = throw(ErrorException("Axis limits not defined."))
+
+
+# ## Type recipes
+
+"""
+    colorscale_attributes(plt)
+
+Get all attributes representing a colorscale.
+"""
+colorscale_attributes(plt) = (:fill_z, :line_z, :marker_z)
+"""
+    set_colorscale!(plt, plotattributes, attr, c)
+
+Set the colorscale value for the colorscale attribute `attr` to `c`.
+"""
+function set_colorscale!(plt, plotattributes, attr, c)
+    plotattributes[attr] = c
+end
 
 
 # ## Plot recipes
